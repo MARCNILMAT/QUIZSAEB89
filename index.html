@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passa ou Repassa Catarina - Arena de Desafios</title>
+    <!-- Tone.js para efeitos sonoros -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <!-- Fontes Modernas -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Bangers&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Overlay de Torta na Cara (Animação de Erro) -->
+    <div id="pieOverlay" class="pie-overlay">
+        <div class="pie-content">
+            <span class="pie-text">TORTA NA CARA! 🥧</span>
+            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJndnZ6Z3N6Z3N6Z3N6Z3N6Z3N6Z3N6Z3N6Z3N6Z3N6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1z/3o7TKURpPnmEwBvWvC/giphy.gif" alt="Torta na cara">
+        </div>
+    </div>
+
+    <!-- Tela de Configuração Inicial -->
+    <div class="setup-screen" id="setupScreen">
+        <div class="setup-card">
+            <h1 class="logo-text">PASSA OU REPASSA <br><span>CATARINA</span></h1>
+            <p class="setup-subtitle">O jogo de perguntas e respostas mais animado da escola!</p>
+            
+            <div class="setup-inputs">
+                <div class="team-setup blue">
+                    <input type="text" id="blueTeamName" placeholder="Nome Time Azul" value="Time Azul">
+                </div>
+                <div class="team-setup yellow">
+                    <input type="text" id="yellowTeamName" placeholder="Nome Time Amarelo" value="Time Amarelo">
+                </div>
+            </div>
+
+            <div class="game-mode-select">
+                <label>Tempo de Resposta:</label>
+                <select id="timerSetting">
+                    <option value="30">30 Segundos</option>
+                    <option value="60" selected>1 Minuto</option>
+                    <option value="120">2 Minutos</option>
+                </select>
+            </div>
+
+            <button class="start-btn pulse" onclick="startGame()">🚀 COMEÇAR O SHOW!</button>
+        </div>
+    </div>
+
+    <!-- Placar e Arena Principal -->
+    <header class="game-header">
+        <div class="scoreboard">
+            <div class="team-score blue-side" id="blueIcon">
+                <h2 id="displayBlueName">AZUL</h2>
+                <div class="score" id="blueScore">0</div>
+            </div>
+            
+            <div class="center-controls">
+                <div class="timer-orb" id="timerOrb">
+                    <span id="timerText">01:00</span>
+                </div>
+                <div class="current-turn-badge" id="turnBadge">Vez do Time Azul</div>
+            </div>
+
+            <div class="team-score yellow-side" id="yellowIcon">
+                <h2 id="displayYellowName">AMARELO</h2>
+                <div class="score" id="yellowScore">0</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="arena">
+        <div class="question-container" id="questionCard">
+            <div class="question-header">
+                 <span id="qNumber">PERGUNTA 1</span>
+                 <span id="qCategory">Matemática</span>
+            </div>
+            <div class="question-body" id="question">
+                Preparem-se as equipes! A pergunta vai começar...
+            </div>
+            
+            <div class="options-grid" id="options">
+                <!-- Opções serão inseridas aqui -->
+            </div>
+
+            <div class="game-actions" id="gameActions">
+                <button class="action-btn respond" onclick="handleAction('respond')">RESPONDER</button>
+                <button class="action-btn pass" id="passBtn" onclick="handleAction('pass')">PASSAR</button>
+            </div>
+
+            <div class="result-box" id="resultBox" style="display: none;">
+                <!-- Resultado e Resolução -->
+            </div>
+        </div>
+    </main>
+
+    <footer class="game-footer">
+        <button class="footer-btn" onclick="togglePause()">⏸️ Pausar</button>
+        <button class="footer-btn next" id="nextBtn" onclick="nextRound()" disabled>PRÓXIMA RODADA ➡️</button>
+        <button class="footer-btn reset" onclick="resetGame()">🔄 Sair</button>
+    </footer>
+
+    <script src="questions.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
