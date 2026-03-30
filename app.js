@@ -96,7 +96,7 @@ function showAnswer() {
             groupBox.classList.add('group-correct');
             groupBox.classList.remove('group-wrong');
             // Dar pontos apenas se ainda não ganhou nesta rodada (evitar cliques duplos)
-            addPoints(groupNum, 10);
+            addPoints(groupNum, 1);
         } else if (chosenLetter !== null) {
             groupBox.classList.add('group-wrong');
             groupBox.classList.remove('group-correct');
