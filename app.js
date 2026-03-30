@@ -71,6 +71,37 @@ function showAnswer() {
     const q = gameState.questions[gameState.currentQuestionIndex];
     const correctBtn = document.getElementById(`opt-${q.correct}`);
     if (correctBtn) correctBtn.classList.add('correct');
+    
+    // Mostrar Resolução
+    const resBox = document.getElementById('resolutionBox');
+    const resText = document.getElementById('resolutionText');
+    resBox.style.display = 'block';
+    resText.textContent = q.resolution || "Não há resolução disponível para esta questão.";
+    
+    // Avaliar cada grupo
+    const letters = ['A', 'B', 'C', 'D'];
+    const correctLetter = letters[q.correct];
+    
+    gameState.groups.forEach((group, i) => {
+        const groupNum = i + 1;
+        const groupBox = document.getElementById(`group${groupNum}`);
+        
+        // Verificar qual letra o grupo escolheu
+        let chosenLetter = null;
+        Object.keys(group.members).forEach(letter => {
+            if (group.members[letter]) chosenLetter = letter;
+        });
+        
+        if (chosenLetter === correctLetter) {
+            groupBox.classList.add('group-correct');
+            groupBox.classList.remove('group-wrong');
+            // Dar pontos apenas se ainda não ganhou nesta rodada (evitar cliques duplos)
+            addPoints(groupNum, 10);
+        } else if (chosenLetter !== null) {
+            groupBox.classList.add('group-wrong');
+            groupBox.classList.remove('group-correct');
+        }
+    });
 }
 
 function toggleTimer() {
@@ -107,6 +138,16 @@ function updateTimerUI() {
 function nextQuestion() {
     if (gameState.currentQuestionIndex < gameState.questions.length - 1) {
         gameState.currentQuestionIndex++;
+        
+        // Resetar Feedback Visual do Card Anterior
+        document.getElementById('resolutionBox').style.display = 'none';
+        document.querySelectorAll('.group-box').forEach(bg => {
+            bg.classList.remove('group-correct', 'group-wrong');
+        });
+        
+        // Resetar seleções dos grupos para a nova rodada
+        resetRoundSelections();
+        
         loadQuestion();
         resetTimerShort();
     }
@@ -133,18 +174,34 @@ function forceFinishAndShow() {
 // Lógica de Grupos
 function toggleMember(groupNum, memberID) {
     const group = gameState.groups[groupNum - 1];
-    group.members[memberID] = !group.members[memberID];
     
-    const btn = document.querySelector(`#group${groupNum} .member-btn:nth-child(${['A','B','C','D'].indexOf(memberID)+1})`);
-    if (btn) {
-        if (group.members[memberID]) {
+    // Se o membro já estava selecionado, desmarque-o
+    if (group.members[memberID]) {
+        group.members[memberID] = false;
+    } else {
+        // Desmarcar todos os outros do grupo (Seleção Única)
+        Object.keys(group.members).forEach(m => group.members[m] = false);
+        group.members[memberID] = true;
+    }
+    
+    // Atualizar UI dos botões do grupo
+    const btns = document.querySelectorAll(`#group${groupNum} .member-btn`);
+    const letters = ['A','B','C','D'];
+    btns.forEach((btn, idx) => {
+        if (group.members[letters[idx]]) {
             btn.classList.add('active');
-            addPoints(groupNum, 1);
         } else {
             btn.classList.remove('active');
-            addPoints(groupNum, -1);
         }
-    }
+    });
+}
+
+function resetRoundSelections() {
+    gameState.groups.forEach((g, i) => {
+        Object.keys(g.members).forEach(m => g.members[m] = false);
+        const btns = document.querySelectorAll(`#group${i+1} .member-btn`);
+        btns.forEach(b => b.classList.remove('active'));
+    });
 }
 
 function addPoints(groupNum, points) {

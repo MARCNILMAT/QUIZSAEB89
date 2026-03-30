@@ -157,6 +157,22 @@ body {
 
 .group-box {
     text-align: center;
+    padding: 10px;
+    border-radius: 15px;
+    transition: 0.5s;
+    border: 3px solid transparent;
+}
+
+.group-correct {
+    background: rgba(46, 204, 113, 0.2);
+    border-color: #2ecc71;
+    box-shadow: 0 0 20px rgba(46, 204, 113, 0.4);
+}
+
+.group-wrong {
+    background: rgba(231, 76, 60, 0.2);
+    border-color: #e74c3c;
+    box-shadow: 0 0 20px rgba(231, 76, 60, 0.4);
 }
 
 .group-label {
@@ -169,6 +185,35 @@ body {
     margin-bottom: 12px;
     display: inline-block;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Resolution Box */
+.resolution-box {
+    margin-top: 30px;
+    background: #fdfae1;
+    border-left: 5px solid #f1c40f;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: left;
+    animation: fadeIn 0.5s;
+}
+
+.resolution-header {
+    font-weight: 800;
+    color: #b7950b;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.resolution-content {
+    font-size: 1.1rem;
+    color: #444;
+    line-height: 1.6;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .member-btns {
