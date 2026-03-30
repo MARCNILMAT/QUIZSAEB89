@@ -1,171 +1,158 @@
 /* 
-   Passa ou Repassa Catarina - Engine Core
+   Passa ou Repassa Catarina - Engine Core (SAEB Edition)
 */
 
 let gameState = {
-    teams: [
-        { name: "Time Azul", score: 0, color: '#007bff' },
-        { name: "Time Amarelo", score: 0, color: '#ffc107' }
-    ],
-    currentTurn: 0, // 0 para Azul, 1 para Amarelo
     currentQuestionIndex: 0,
-    passCount: 0, // 0: Normal, 1: Passou, 2: Repassou
-    timeLeft: 60,
-    timerMax: 60,
+    questions: [],
+    timer: 144, // 2:24 em segundos conforme imagem
     timerInterval: null,
     isPaused: false,
-    gameQuestions: []
+    groups: [
+        { points: 0, members: { A: false, B: false, C: false, D: false } },
+        { points: 0, members: { A: false, B: false, C: false, D: false } },
+        { points: 0, members: { A: false, B: false, C: false, D: false } },
+        { points: 0, members: { A: false, B: false, C: false, D: false } },
+        { points: 0, members: { A: false, B: false, C: false, D: false } },
+        { points: 0, members: { A: false, B: false, C: false, D: false } }
+    ]
 };
 
-// Síntese de Voz
-const synth = window.speechSynthesis;
-const utterance = new SpeechSynthesisUtterance();
-utterance.lang = 'pt-BR';
-utterance.rate = 1.0;
-
-function speak(text) {
-    if (synth) {
-        synth.cancel();
-        utterance.text = text;
-        // synth.speak(utterance); // Opcional, descomentar para ativar voz
-    }
-}
-
-async function startGame() {
-    await Tone.start();
-    
-    // Configurações Iniciais
-    gameState.teams[0].name = document.getElementById('blueTeamName').value || "Time Azul";
-    gameState.teams[1].name = document.getElementById('yellowTeamName').value || "Time Amarelo";
-    gameState.timerMax = parseInt(document.getElementById('timerSetting').value);
-    
-    document.getElementById('displayBlueName').textContent = gameState.teams[0].name;
-    document.getElementById('displayYellowName').textContent = gameState.teams[1].name;
-    
-    // Embaralhar Questões
-    gameState.gameQuestions = [...allQuestions].sort(() => Math.random() - 0.5);
+function startGame() {
+    // Carregar e embaralhar questões
+    gameState.questions = [...allQuestions].sort(() => Math.random() - 0.5);
+    gameState.currentQuestionIndex = 0;
     
     document.getElementById('setupScreen').style.display = 'none';
-    loadRound();
-}
-
-function loadRound() {
-    if (gameState.currentQuestionIndex >= gameState.gameQuestions.length) {
-        alert("Fim do jogo! Parabéns às equipes.");
-        return;
-    }
-
-    gameState.passCount = 0;
-    updateTurnUI();
-    showQuestionBase();
+    resetPoints();
+    loadQuestion();
     startTimer();
 }
 
-function updateTurnUI() {
-    const blueIcon = document.getElementById('blueIcon');
-    const yellowIcon = document.getElementById('yellowIcon');
-    const badge = document.getElementById('turnBadge');
-    
-    blueIcon.classList.remove('active');
-    yellowIcon.classList.remove('active');
-    
-    if (gameState.currentTurn === 0) {
-        blueIcon.classList.add('active');
-        badge.textContent = `Vez de: ${gameState.teams[0].name}`;
-        badge.style.background = gameState.teams[0].color;
-        badge.style.color = "#fff";
-    } else {
-        yellowIcon.classList.add('active');
-        badge.textContent = `Vez de: ${gameState.teams[1].name}`;
-        badge.style.background = gameState.teams[1].color;
-        badge.style.color = "#000";
-    }
+function loadQuestion() {
+    const q = gameState.questions[gameState.currentQuestionIndex];
+    document.getElementById('questionInfo').textContent = `Questão ${gameState.currentQuestionIndex + 1} de ${gameState.questions.length}`;
+    document.getElementById('questionText').textContent = q.question;
+    renderOptions(q);
 }
 
-function showQuestionBase() {
-    const q = gameState.gameQuestions[gameState.currentQuestionIndex];
-    document.getElementById('qNumber').textContent = `RODADA ${gameState.currentQuestionIndex + 1}`;
-    document.getElementById('qCategory').textContent = q.category || "SAEB";
-    document.getElementById('question').textContent = q.question;
-    
-    const optionsGrid = document.getElementById('options');
-    optionsGrid.innerHTML = '';
-    
-    // Resetar botões de ação
-    const passBtn = document.getElementById('passBtn');
-    passBtn.textContent = "PASSAR";
-    passBtn.className = "action-btn pass";
-    passBtn.style.display = 'block';
-    
-    document.getElementById('gameActions').style.display = 'flex';
-    document.getElementById('resultBox').style.display = 'none';
-    document.getElementById('nextBtn').disabled = true;
-}
-
-function handleAction(type) {
-    if (type === 'respond') {
-        clearInterval(gameState.timerInterval);
-        document.getElementById('gameActions').style.display = 'none';
-        showAnswerSelection();
-    } else if (type === 'pass') {
-        passQuestion();
-    }
-}
-
-function passQuestion() {
-    gameState.passCount++;
-    gameState.currentTurn = 1 - gameState.currentTurn; // Alterna time
-    updateTurnUI();
-    
-    const passBtn = document.getElementById('passBtn');
-    
-    if (gameState.passCount === 1) {
-        passBtn.textContent = "REPASSAR";
-        passBtn.classList.add('repass');
-    } else if (gameState.passCount === 2) {
-        passBtn.style.display = 'none'; // Não pode mais passar
-    }
-    
-    // Reinicia o tempo para o novo time pensar
-    clearInterval(gameState.timerInterval);
-    startTimer();
-}
-
-function showAnswerSelection() {
-    const q = gameState.gameQuestions[gameState.currentQuestionIndex];
-    const grid = document.getElementById('options');
+function renderOptions(q) {
+    const grid = document.getElementById('optionsGrid');
     grid.innerHTML = '';
-    
+    const letters = ['A', 'B', 'C', 'D'];
     q.options.forEach((opt, i) => {
         const btn = document.createElement('button');
         btn.className = 'option-btn';
-        btn.textContent = `${String.fromCharCode(65+i)}) ${opt}`;
-        btn.onclick = () => checkAnswer(i);
+        btn.id = `opt-${i}`;
+        btn.innerHTML = `${letters[i]}) ${opt}`;
+        btn.onclick = () => selectOption(i);
         grid.appendChild(btn);
     });
 }
 
-function checkAnswer(index) {
-    const q = gameState.gameQuestions[gameState.currentQuestionIndex];
+function selectOption(index) {
+    const q = gameState.questions[gameState.currentQuestionIndex];
     const btns = document.querySelectorAll('.option-btn');
     
     btns.forEach((btn, i) => {
-        btn.disabled = true;
-        if (i === q.correct) btn.classList.add('correct');
-        else if (i === index) btn.classList.add('incorrect');
+        btn.classList.remove('correct', 'wrong');
+        if (i === q.correct) {
+            btn.classList.add('correct');
+        } else if (i === index) {
+            btn.classList.add('wrong');
+        }
     });
-
-    const isCorrect = (index === q.correct);
     
-    if (isCorrect) {
-        gameState.teams[gameState.currentTurn].score += 10;
-        document.getElementById(gameState.currentTurn === 0 ? 'blueScore' : 'yellowScore').textContent = gameState.teams[gameState.currentTurn].score;
-    } else {
-        // Se errou na pergunta repassada ou normal
-        triggerPie();
-    }
+    // Se o usuário clicou na opção correta, você pode querer adicionar lógica de pontos automática,
+    // mas no layout do professor (imagem), os pontos parecem ser manuais.
+}
 
-    showResultSummary(isCorrect);
+function showAnswer() {
+    const q = gameState.questions[gameState.currentQuestionIndex];
+    const correctBtn = document.getElementById(`opt-${q.correct}`);
+    if (correctBtn) correctBtn.classList.add('correct');
+}
+
+function toggleTimer() {
+    gameState.isPaused = !gameState.isPaused;
+}
+
+function startTimer() {
+    if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+    gameState.timerInterval = setInterval(() => {
+        if (!gameState.isPaused && gameState.timer > 0) {
+            gameState.timer--;
+            updateTimerUI();
+        } else if (gameState.timer === 0) {
+            clearInterval(gameState.timerInterval);
+            triggerPie();
+        }
+    }, 1000);
+}
+
+function updateTimerUI() {
+    const m = Math.floor(gameState.timer / 60);
+    const s = gameState.timer % 60;
+    document.getElementById('timerText').textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+function nextQuestion() {
+    if (gameState.currentQuestionIndex < gameState.questions.length - 1) {
+        gameState.currentQuestionIndex++;
+        loadQuestion();
+        resetTimerShort();
+    }
+}
+
+function prevQuestion() {
+    if (gameState.currentQuestionIndex > 0) {
+        gameState.currentQuestionIndex--;
+        loadQuestion();
+    }
+}
+
+function resetTimerShort() {
+    gameState.timer = 144; // Volta para 2:24 ou o tempo padrão
+    updateTimerUI();
+}
+
+function forceFinishAndShow() {
+    gameState.timer = 0;
+    updateTimerUI();
+    showAnswer();
+}
+
+// Lógica de Grupos
+function toggleMember(groupNum, memberID) {
+    const group = gameState.groups[groupNum - 1];
+    group.members[memberID] = !group.members[memberID];
+    
+    const btn = document.querySelector(`#group${groupNum} .member-btn:nth-child(${['A','B','C','D'].indexOf(memberID)+1})`);
+    if (btn) {
+        if (group.members[memberID]) {
+            btn.classList.add('active');
+            addPoints(groupNum, 1);
+        } else {
+            btn.classList.remove('active');
+            addPoints(groupNum, -1);
+        }
+    }
+}
+
+function addPoints(groupNum, points) {
+    gameState.groups[groupNum - 1].points += points;
+    if (gameState.groups[groupNum - 1].points < 0) gameState.groups[groupNum - 1].points = 0;
+    document.getElementById(`points${groupNum}`).textContent = gameState.groups[groupNum - 1].points;
+}
+
+function resetPoints() {
+    gameState.groups.forEach((g, i) => {
+        g.points = 0;
+        document.getElementById(`points${i+1}`).textContent = '0';
+        const btns = document.querySelectorAll(`#group${i+1} .member-btn`);
+        btns.forEach(b => b.classList.remove('active'));
+        Object.keys(g.members).forEach(m => g.members[m] = false);
+    });
 }
 
 function triggerPie() {
@@ -176,74 +163,8 @@ function triggerPie() {
     }, 3000);
 }
 
-function showResultSummary(isCorrect) {
-    const q = gameState.gameQuestions[gameState.currentQuestionIndex];
-    const box = document.getElementById('resultBox');
-    box.style.display = 'block';
-    
-    box.innerHTML = `
-        <h3 style="color: ${isCorrect ? '#28a745' : '#dc3545'}">
-            ${isCorrect ? '✅ ACERTOU!' : '❌ ERROU!'}
-        </h3>
-        <p><strong>Resposta Correta:</strong> ${q.options[q.correct]}</p>
-        <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8">
-            <strong>Porquê?</strong> ${q.resolution || ''}
-        </div>
-    `;
-    
-    document.getElementById('nextBtn').disabled = false;
-}
-
-function startTimer() {
-    gameState.timeLeft = gameState.timerMax;
-    updateTimerUI();
-    
-    clearInterval(gameState.timerInterval);
-    gameState.timerInterval = setInterval(() => {
-        if (!gameState.isPaused) {
-            gameState.timeLeft--;
-            updateTimerUI();
-            
-            if (gameState.timeLeft <= 10) {
-                document.getElementById('timerOrb').classList.add('warning');
-            } else {
-                document.getElementById('timerOrb').classList.remove('warning');
-            }
-
-            if (gameState.timeLeft <= 0) {
-                clearInterval(gameState.timerInterval);
-                handleTimeout();
-            }
-        }
-    }, 1000);
-}
-
-function handleTimeout() {
-    triggerPie();
-    showAnswerSelection(); // Força mostrar as alternativas para o professor explicar
-    checkAnswer(-1); // Errou por tempo
-}
-
-function updateTimerUI() {
-    const m = Math.floor(gameState.timeLeft / 60);
-    const s = gameState.timeLeft % 60;
-    document.getElementById('timerText').textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
-}
-
-function nextRound() {
-    gameState.currentQuestionIndex++;
-    // O próximo time inicia a próxima rodada por padrão, ou quem ganhou? 
-    // Vamos alternar o time inicial a cada rodada.
-    gameState.currentTurn = (gameState.currentQuestionIndex) % 2;
-    loadRound();
-}
-
-function togglePause() {
-    gameState.isPaused = !gameState.isPaused;
-}
-
-function resetGame() {
-    if (confirm("Deseja sair deste jogo?")) {
-        location.reload();
+function resetSimulado() {
+    if (confirm("Deseja reiniciar o simulado?")) {
+        startGame();
     }
 }
