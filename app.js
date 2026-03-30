@@ -75,6 +75,14 @@ function showAnswer() {
 
 function toggleTimer() {
     gameState.isPaused = !gameState.isPaused;
+    const btn = document.getElementById('pauseBtn');
+    if (gameState.isPaused) {
+        btn.innerHTML = '▶ Retomar Tempo';
+        btn.classList.replace('btn-orange', 'btn-green');
+    } else {
+        btn.innerHTML = '⏸ Pausar Tempo';
+        btn.classList.replace('btn-green', 'btn-orange');
+    }
 }
 
 function startTimer() {
@@ -165,6 +173,55 @@ function triggerPie() {
 
 function resetSimulado() {
     if (confirm("Deseja reiniciar o simulado?")) {
+        gameState.timer = 144;
+        gameState.isPaused = false;
+        closeResults();
         startGame();
     }
+}
+
+function endSimulado() {
+    clearInterval(gameState.timerInterval);
+    gameState.isPaused = true;
+    
+    const resultsBody = document.getElementById('resultsBody');
+    resultsBody.innerHTML = '';
+    
+    // Criar ranking
+    const sortedGroups = gameState.groups
+        .map((g, i) => ({ name: `Grupo ${i + 1}`, points: g.points }))
+        .sort((a, b) => b.points - a.points);
+        
+    sortedGroups.forEach(group => {
+        const div = document.createElement('div');
+        div.className = 'result-item';
+        div.innerHTML = `
+            <span>${group.name}</span>
+            <span class="result-points">${group.points} pts</span>
+        `;
+        resultsBody.appendChild(div);
+    });
+    
+    document.getElementById('resultsModal').style.display = 'flex';
+}
+
+function closeResults() {
+    document.getElementById('resultsModal').style.display = 'none';
+}
+
+function exportResults() {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Grupo,Pontuacao\n";
+    
+    gameState.groups.forEach((g, i) => {
+        csvContent += `Grupo ${i+1},${g.points}\n`;
+    });
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "resultados_simulado_saeb.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }

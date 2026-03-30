@@ -120,13 +120,30 @@
 
     <!-- Barra de Controle Inferior -->
     <footer class="control-bar">
-        <button class="control-btn btn-orange" onclick="toggleTimer()">⏸ Pausar Tempo</button>
+        <button id="pauseBtn" class="control-btn btn-orange" onclick="toggleTimer()">⏸ Pausar Tempo</button>
         <button class="control-btn btn-green" onclick="showAnswer()">💡 MOSTRAR RESPOSTA</button>
         <button class="control-btn btn-yellow" onclick="forceFinishAndShow()">🚨 ENCERRAR TEMPO E VER RESPOSTA</button>
         <button class="control-btn btn-yellow" onclick="prevQuestion()">⬅ Questão Anterior</button>
         <button class="control-btn btn-yellow" onclick="nextQuestion()">➡ Próxima Questão</button>
+        <button class="control-btn btn-red" onclick="endSimulado()">⏹ Encerrar Simulado</button>
+        <button class="control-btn btn-blue" onclick="exportResults()">📥 Exportar Resultados</button>
         <button class="control-btn btn-yellow" onclick="resetSimulado()">🔄 Novo Simulado</button>
     </footer>
+
+    <!-- Modal de Resultados Finais -->
+    <div id="resultsModal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <h1 class="modal-title">🏆 RESULTADOS FINAIS</h1>
+            <hr>
+            <div id="resultsBody" class="results-list">
+                <!-- Resultados dos grupos serão inseridos aqui -->
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn btn-blue" onclick="exportResults()">Baixar CSV</button>
+                <button class="modal-btn btn-yellow" onclick="closeResults()">Fechar</button>
+            </div>
+        </div>
+    </div>
 
     <script src="questions.js"></script>
     <script src="app.js"></script>
