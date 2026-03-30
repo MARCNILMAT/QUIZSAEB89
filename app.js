@@ -267,18 +267,40 @@ function closeResults() {
 }
 
 function exportResults() {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Grupo,Pontuacao\n";
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
     
-    gameState.groups.forEach((g, i) => {
-        csvContent += `Grupo ${i+1},${g.points}\n`;
+    // Título do PDF
+    doc.setFontSize(20);
+    doc.text("Relatório de Desempenho - Simulado SAEB", 105, 20, { align: "center" });
+    
+    // Data e Hora
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('pt-BR');
+    const timeStr = now.toLocaleTimeString('pt-BR');
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${dateStr} às ${timeStr}`, 105, 30, { align: "center" });
+    
+    // Tabela de Resultados
+    const tableData = gameState.groups.map((g, i) => [
+        `Grupo ${i + 1}`,
+        `${g.points} pontos`
+    ]);
+    
+    doc.autoTable({
+        startY: 40,
+        head: [['Grupo', 'Pontuação Final']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { fillStyle: '#4e54c8' } // Cor primária da nossa UI
     });
     
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "resultados_simulado_saeb.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Rodapé
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.text(`Página ${i} de ${pageCount}`, 105, 290, { align: "center" });
+    }
+    
+    doc.save(`Resultado_Simulado_SAEB_${dateStr.replace(/\//g,'-')}.pdf`);
 }
