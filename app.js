@@ -8,6 +8,8 @@ let gameState = {
     timer: 144, // 2:24 em segundos conforme imagem
     timerInterval: null,
     isPaused: false,
+    ano: "9",
+    turma: "901",
     groups: [
         { points: 0, members: { A: false, B: false, C: false, D: false } },
         { points: 0, members: { A: false, B: false, C: false, D: false } },
@@ -19,11 +21,32 @@ let gameState = {
 };
 
 function startGame() {
-    // Carregar e embaralhar questões
-    gameState.questions = [...allQuestions].sort(() => Math.random() - 0.5);
+    // Capturar Configurações
+    gameState.ano = document.getElementById('anoSelect').value;
+    gameState.turma = document.getElementById('turmaSelect').value;
+
+    // Filtrar questões baseado no ano
+    if (gameState.ano === "8") {
+        // Questões que contém "8º Ano" na categoria
+        gameState.questions = allQuestions.filter(q => 
+            q.category && q.category.includes("8º Ano")
+        );
+    } else {
+        // Questões para o 9º ano (assumindo que são as que tem apenas "Saeb")
+        gameState.questions = allQuestions.filter(q => 
+            q.category === "Saeb"
+        );
+    }
+
+    // Embaralhar
+    gameState.questions = gameState.questions.sort(() => Math.random() - 0.5);
     gameState.currentQuestionIndex = 0;
     
     document.getElementById('setupScreen').style.display = 'none';
+    
+    // Atualizar subtítulo na tela principal para mostrar a turma
+    document.querySelector('.sub-title').textContent = `Simulado de Matemática para o ${gameState.ano}º Ano - Turma: ${gameState.turma}`;
+
     resetPoints();
     loadQuestion();
     startTimer();
@@ -271,15 +294,19 @@ function exportResults() {
     const doc = new jsPDF();
     
     // Título do PDF
-    doc.setFontSize(20);
+    doc.setFontSize(22);
     doc.text("Relatório de Desempenho - Simulado SAEB", 105, 20, { align: "center" });
+    
+    // Subtítulo com Ano e Turma
+    doc.setFontSize(14);
+    doc.text(`${gameState.ano}º Ano - Turma: ${gameState.turma}`, 105, 30, { align: "center" });
     
     // Data e Hora
     const now = new Date();
     const dateStr = now.toLocaleDateString('pt-BR');
     const timeStr = now.toLocaleTimeString('pt-BR');
     doc.setFontSize(10);
-    doc.text(`Gerado em: ${dateStr} às ${timeStr}`, 105, 30, { align: "center" });
+    doc.text(`Gerado em: ${dateStr} às ${timeStr}`, 105, 38, { align: "center" });
     
     // Tabela de Resultados
     const tableData = gameState.groups.map((g, i) => [
@@ -288,7 +315,7 @@ function exportResults() {
     ]);
     
     doc.autoTable({
-        startY: 40,
+        startY: 45,
         head: [['Grupo', 'Pontuação Final']],
         body: tableData,
         theme: 'striped',
@@ -302,5 +329,5 @@ function exportResults() {
         doc.text(`Página ${i} de ${pageCount}`, 105, 290, { align: "center" });
     }
     
-    doc.save(`Resultado_Simulado_SAEB_${dateStr.replace(/\//g,'-')}.pdf`);
+    doc.save(`Resultado_Simulado_SAEB_${gameState.ano}Ano_${gameState.turma}_${dateStr.replace(/\//g,'-')}.pdf`);
 }

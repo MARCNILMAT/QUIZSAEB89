@@ -22,9 +22,49 @@
             <h1>SIMULADO SAEB</h1>
             <p>Preparação para o 8º e 9º Ano</p>
             <br>
+            
+            <div class="setup-form">
+                <div class="form-group">
+                    <label for="anoSelect">Escolha o Ano:</label>
+                    <select id="anoSelect" onchange="updateTurmas()">
+                        <option value="8">8º ANO</option>
+                        <option value="9" selected>9º ANO</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="turmaSelect">Escolha a Turma:</label>
+                    <select id="turmaSelect">
+                        <option value="901">901</option>
+                        <option value="902">902</option>
+                    </select>
+                </div>
+            </div>
+            <br>
             <button class="start-btn" onclick="startGame()">INICIAR SIMULADO</button>
         </div>
     </div>
+
+    <!-- Script de Suporte Local UI -->
+    <script>
+        function updateTurmas() {
+            const ano = document.getElementById('anoSelect').value;
+            const turmaSelect = document.getElementById('turmaSelect');
+            turmaSelect.innerHTML = '';
+            
+            if (ano === "8") {
+                turmaSelect.innerHTML = `
+                    <option value="801">801</option>
+                    <option value="802">802</option>
+                `;
+            } else {
+                turmaSelect.innerHTML = `
+                    <option value="901">901</option>
+                    <option value="902">902</option>
+                `;
+            }
+        }
+    </script>
 
     <!-- Cabeçalho -->
     <header class="game-header">

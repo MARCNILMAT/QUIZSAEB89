@@ -377,6 +377,38 @@ body {
     box-shadow: 0 0 100px rgba(0,0,0,0.5);
 }
 
+.setup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin: 30px 0;
+    align-items: center;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 400px;
+    text-align: left;
+}
+
+.form-group label {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--primary);
+}
+
+.form-group select {
+    padding: 15px;
+    border-radius: 12px;
+    border: 2px solid #ddd;
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: #f9f9f9;
+}
+
 .start-btn {
     background: var(--primary);
     color: #fff;
